@@ -99,7 +99,7 @@ public class RecoupementPage extends LazyPage {
 
     var nameFilter = new PlaceholderTextField("Rechercher");
     nameFilter.setPreferredSize(new Dimension(180, 35));
-    nameFilter.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+    nameFilter.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
 
     int debounceDelay = 500;
     Timer debounceTimer =
