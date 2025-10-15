@@ -5,6 +5,10 @@ import static school.hei.patrimoine.visualisation.swing.ihm.google.utils.Message
 import static school.hei.patrimoine.visualisation.swing.ihm.google.utils.MessageDialog.showInfo;
 
 import java.awt.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 import javax.swing.*;
@@ -67,8 +71,14 @@ public class CommentSideBar extends JPanel {
                 return List.of();
               }
 
+              ZoneId madagascar = ZoneId.of("Indian/Antananarivo");
+              LocalDateTime localDateTime = LocalDateTime.of(2025, 10, 15, 16, 24);
+              ZonedDateTime zdt = localDateTime.atZone(madagascar);
+              Instant startDate = zdt.toInstant();
+
               var paginatedResult =
-                  commentApi.getByFileId(state.get("selectedFileId"), new Pagination(100, null));
+                  commentApi.getByFileId(
+                      state.get("selectedFileId"), new Pagination(20, null), startDate);
               return paginatedResult.data();
             })
         .onSuccess(newComments -> commentListPanel.update(state.get("selectedFileId"), newComments))
