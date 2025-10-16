@@ -5,8 +5,6 @@ import static java.util.function.Predicate.not;
 import com.google.api.services.drive.model.Reply;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -32,17 +30,13 @@ public class CommentApi {
   public PaginatedResult<List<Comment>> getByFileId(
       String fileId, Pagination pagination, Instant startDate) throws GoogleIntegrationException {
 
-    ZoneId madagascar = ZoneId.of("Indian/Antananarivo");
-    ZonedDateTime threeMonthsAgo = ZonedDateTime.now(madagascar).minusMonths(3);
-    Instant finalStartDate = (startDate != null) ? startDate : threeMonthsAgo.toInstant();
-
     return apiCache
         .wrap(
             COMMENTS_CACHE_KEY,
-            pagination.createCacheKey(fileId + "_" + finalStartDate.toString()),
+            pagination.createCacheKey(fileId + "_" + startDate),
             () -> {
               try {
-                return getByFileIdWithoutCache(fileId, pagination, finalStartDate);
+                return getByFileIdWithoutCache(fileId, pagination, startDate);
               } catch (IOException e) {
                 throw new GoogleIntegrationException(
                     "Failed to get comments for fileId=" + fileId, e);
