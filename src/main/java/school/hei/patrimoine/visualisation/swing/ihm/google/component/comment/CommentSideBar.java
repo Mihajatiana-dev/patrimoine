@@ -5,10 +5,7 @@ import static school.hei.patrimoine.visualisation.swing.ihm.google.utils.Message
 import static school.hei.patrimoine.visualisation.swing.ihm.google.utils.MessageDialog.showInfo;
 
 import java.awt.*;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.Set;
 import javax.swing.*;
@@ -17,6 +14,7 @@ import school.hei.patrimoine.google.api.CommentApi;
 import school.hei.patrimoine.google.cache.ApiCache;
 import school.hei.patrimoine.google.model.Comment;
 import school.hei.patrimoine.google.model.Pagination;
+import school.hei.patrimoine.visualisation.swing.ihm.google.component.DatePicker;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.app.AppContext;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.button.Button;
 import school.hei.patrimoine.visualisation.swing.ihm.google.modele.State;
@@ -27,6 +25,7 @@ public class CommentSideBar extends JPanel {
   private final ApiCache apiCache;
   private final CommentApi commentApi;
   private final CommentListPanel commentListPanel;
+  private DatePicker datePicker;
 
   public CommentSideBar(State state) {
     super(new BorderLayout());
@@ -56,7 +55,21 @@ public class CommentSideBar extends JPanel {
             e -> new CommentAddDialog(state, this::refreshCurrentFileCommentsCache));
     topPanel.add(addCommentBtn, BorderLayout.EAST);
 
+    this.datePicker = new DatePicker(LocalDate.now().minusMonths(3));
+    this.datePicker.addActionListener(e -> update());
+    topPanel.add(datePicker, BorderLayout.CENTER);
+
     add(topPanel, BorderLayout.NORTH);
+  }
+
+  public Instant datePickerToInstant(DatePicker startDatePicker) {
+    LocalDate date =
+        LocalDate.of(
+            startDatePicker.getModel().getYear(),
+            startDatePicker.getModel().getMonth() + 1,
+            startDatePicker.getModel().getDay());
+
+    return date.atStartOfDay(ZoneId.of("Indian/Antananarivo")).toInstant();
   }
 
   private void addCommentList() {
@@ -71,10 +84,7 @@ public class CommentSideBar extends JPanel {
                 return List.of();
               }
 
-              ZoneId madagascar = ZoneId.of("Indian/Antananarivo");
-              LocalDateTime localDateTime = LocalDateTime.of(2025, 10, 15, 16, 24);
-              ZonedDateTime zdt = localDateTime.atZone(madagascar);
-              Instant startDate = zdt.toInstant();
+              Instant startDate = datePickerToInstant(datePicker);
 
               var paginatedResult =
                   commentApi.getByFileId(
