@@ -49,16 +49,20 @@ public class CommentSideBar extends JPanel {
     title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
     topPanel.add(title, BorderLayout.WEST);
 
+    var rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+
     var addCommentBtn =
         new Button(
             "Ajouter un commentaire",
             e -> new CommentAddDialog(state, this::refreshCurrentFileCommentsCache));
-    topPanel.add(addCommentBtn, BorderLayout.EAST);
+    rightPanel.add(addCommentBtn);
 
     this.datePicker = new DatePicker(LocalDate.now().minusMonths(3));
+    this.datePicker.setPreferredSize(new Dimension(200, 35));
     this.datePicker.addActionListener(e -> update());
-    topPanel.add(datePicker, BorderLayout.CENTER);
+    rightPanel.add(datePicker);
 
+    topPanel.add(rightPanel, BorderLayout.EAST);
     add(topPanel, BorderLayout.NORTH);
   }
 
