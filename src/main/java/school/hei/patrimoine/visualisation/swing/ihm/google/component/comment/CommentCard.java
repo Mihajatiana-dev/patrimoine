@@ -1,7 +1,5 @@
 package school.hei.patrimoine.visualisation.swing.ihm.google.component.comment;
 
-import static school.hei.patrimoine.visualisation.swing.ihm.google.component.comment.CommentSideBar.resolveComment;
-
 import java.awt.*;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -10,6 +8,8 @@ import javax.swing.border.EmptyBorder;
 import school.hei.patrimoine.google.model.Comment;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.RoundedPanel;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.button.Button;
+
+import static school.hei.patrimoine.visualisation.swing.ihm.google.component.comment.CommentSideBar.*;
 
 public class CommentCard extends JPanel {
   private final Component parent;
@@ -138,6 +138,8 @@ public class CommentCard extends JPanel {
     if (!comment.resolved()) {
       buttons.add(resolveButton(fileId, comment, refresh));
     }
+
+    buttons.add(removeButton(fileId, comment, refresh));
     return buttons;
   }
 
@@ -159,5 +161,9 @@ public class CommentCard extends JPanel {
 
   static Button resolveButton(String fileId, Comment parentComment, Runnable refresh) {
     return new Button("Résoudre", e -> resolveComment(fileId, parentComment, refresh));
+  }
+
+  static Button removeButton(String fileId, Comment parentComment, Runnable refresh) {
+    return new Button("Supprimer", e -> removeComment(fileId, parentComment, refresh));
   }
 }
