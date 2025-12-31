@@ -22,6 +22,7 @@ public class FileSideBar extends JPanel {
   private final State state;
   private final JList<File> plannedList;
   private final JList<File> doneList;
+  private final JList<File> justificativeList;
 
   public FileSideBar(State state) {
     super(new BorderLayout());
@@ -29,12 +30,15 @@ public class FileSideBar extends JPanel {
     this.state = state;
     this.plannedList = new JList<>(new FileListModel(getPatriLangPlannedFiles()));
     this.doneList = new JList<>(new FileListModel(getPatriLangDoneFiles()));
+    this.justificativeList = new JList<>(new FileListModel(getPatriLangJustificativeFiles()));
 
     plannedList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     doneList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    justificativeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
     plannedList.setCellRenderer(new FileListCellRenderer());
     doneList.setCellRenderer(new FileListCellRenderer());
+    justificativeList.setCellRenderer(new FileListCellRenderer());
 
     var plannedDebouncer =
         new Debouncer(
@@ -72,6 +76,22 @@ public class FileSideBar extends JPanel {
               plannedList.clearSelection();
             });
 
+    var justificativeDebouncer =
+        new Debouncer(
+            () -> {
+              var selectedFile = justificativeList.getSelectedValue();
+              if (selectedFile == null) return;
+              this.state.update(
+                    Map.of(
+                      "selectedFile",
+                      selectedFile,
+                      "selectedFileId",
+                      getSelectedJustificativeFileDriveId(selectedFile).orElse(""),
+                      "isPlannedSelectedFile",
+                      false));
+              justificativeList.clearSelection();
+            });
+
     plannedList.addListSelectionListener(
         e -> {
           if (!e.getValueIsAdjusting()) {
@@ -85,6 +105,14 @@ public class FileSideBar extends JPanel {
             doneDebouncer.restart();
           }
         });
+
+    justificativeList.addListSelectionListener(
+            e -> {
+                if (!e.getValueIsAdjusting()) {
+                    justificativeDebouncer.restart();
+                }
+            }
+    );
 
     var panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -101,6 +129,13 @@ public class FileSideBar extends JPanel {
     panel.add(doneLabel);
     panel.add(new JScrollPane(doneList));
 
+    panel.add(Box.createVerticalStrut(20));
+
+    var justificativeLabel = new JLabel("Pièces justificatives");
+    justificativeLabel.setFont(justificativeLabel.getFont().deriveFont(Font.BOLD));
+    panel.add(justificativeLabel);
+    panel.add(new JScrollPane(justificativeList));
+
     add(panel, BorderLayout.CENTER);
   }
 
@@ -112,6 +147,28 @@ public class FileSideBar extends JPanel {
     }
 
     var namedIds = isPlannedSelectedFile ? ids.planned() : ids.done();
+    return namedIds.stream()
+        .filter(
+            driveNamedId -> {
+              var filename =
+                  currentFile
+                      .getName()
+                      .replace(TOUT_CAS_FILE_EXTENSION, "")
+                      .replace(CAS_FILE_EXTENSION, "");
+              return driveNamedId.name().equals(filename);
+            })
+        .findFirst()
+        .map(NamedID::id);
+  }
+
+  private Optional<String> getSelectedJustificativeFileDriveId(File currentFile) {
+    GoogleLinkList<NamedID> ids = AppContext.getDefault().getData("named-ids");
+
+    if (currentFile == null) {
+      return Optional.empty();
+    }
+
+    var namedIds = ids.justificative();
     return namedIds.stream()
         .filter(
             driveNamedId -> {
@@ -147,6 +204,13 @@ public class FileSideBar extends JPanel {
         .toList();
   }
 
+  public static List<File> getPatriLangJustificativeFiles() {
+      return Arrays.stream(
+              requireNonNull(new File(GoogleLinkListDownloader.getJustificativeDirectoryPath()).listFiles()))
+                      .filter(file -> file.getName().endsWith(TOUT_CAS_FILE_EXTENSION) || file.getName().endsWith(CAS_FILE_EXTENSION))
+              .toList();
+  }
+
   public static File getPlannedCasSetFile() {
     return Arrays.stream(
             requireNonNull(
@@ -162,6 +226,11 @@ public class FileSideBar extends JPanel {
         .filter(file -> file.getName().endsWith(TOUT_CAS_FILE_EXTENSION))
         .findFirst()
         .orElseThrow();
+  }
+
+  public static File getJustificativeCasSetFile() {
+      // should find the appropriate CasSet
+      return null;
   }
 
   public static List<File> getDonePatrilangFilesWithoutCasSet() {
