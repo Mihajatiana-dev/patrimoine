@@ -11,16 +11,9 @@ public class EcritureComptableFactory {
   public static EcritureComptable make(
       Journal journal, OperationComptable operation, PieceJustificative pj) {
     var possession = operation.getPossession();
-    var valeurRealisee = possession.valeurComptable();
 
-    var debit =
-        LigneEcriture.builder().compte(operation.getCompteActif()).flux(valeurRealisee).build();
-
-    var credit =
-        LigneEcriture.builder()
-            .compte(operation.getComptePassif())
-            .flux(valeurRealisee.mult(-1))
-            .build();
+    var debit = LigneEcriture.builder().compte(operation.getCompteDebiteur()).build();
+    var credit = LigneEcriture.builder().compte(operation.getCompteCrediteur()).build();
 
     return EcritureComptable.builder()
         .id((journal.getNextId()))
