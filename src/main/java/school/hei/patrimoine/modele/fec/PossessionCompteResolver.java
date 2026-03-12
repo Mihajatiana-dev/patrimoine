@@ -20,16 +20,20 @@ public class PossessionCompteResolver {
       case FluxArgent flux -> getComptes(flux);
       case TransfertArgent transfert ->
           new Comptes(
-              CompteComptable.of(transfert.versCompte(), CCA),
-              CompteComptable.of(transfert.depuisCompte(), CCA));
+              CompteComptable.of(transfert.versCompte(), CCA, true),
+              CompteComptable.of(transfert.depuisCompte(), CCA, false));
       case Compte compte ->
-          new Comptes(CompteComptable.of(compte, CCA), CompteComptable.of(CAPITAL_SOCIAL, CCA));
+          new Comptes(
+              CompteComptable.of(compte, CCA, true),
+              CompteComptable.of(CAPITAL_SOCIAL, CCA, false));
       case RemboursementDette remboursement ->
           new Comptes(
-              CompteComptable.of(remboursement.remboursé(), CCA),
-              CompteComptable.of(remboursement.rembourseur(), CCA));
+              CompteComptable.of(remboursement.remboursé(), CCA, true),
+              CompteComptable.of(remboursement.rembourseur(), CCA, false));
       case AchatMaterielAuComptant achat ->
-          new Comptes(CompteComptable.of(FINANCÉ, CCA), CompteComptable.of(achat.financeur(), CCA));
+          new Comptes(
+              CompteComptable.of(FINANCÉ, CCA, true),
+              CompteComptable.of(achat.financeur(), CCA, false));
       default ->
           throw new IllegalArgumentException(
               "Impossible de déterminer les comptes pour " + possession.getClass().getSimpleName());
@@ -39,10 +43,12 @@ public class PossessionCompteResolver {
   private static @NonNull Comptes getComptes(FluxArgent flux) {
     if (flux.getFluxMensuel().montant() < 0) {
       return new Comptes(
-          CompteComptable.of(COMPTE_ATTENTE, CCA), CompteComptable.of(flux.getCompte(), CCA));
+          CompteComptable.of(COMPTE_ATTENTE, CCA, true),
+          CompteComptable.of(flux.getCompte(), CCA, false));
     }
     return new Comptes(
-        CompteComptable.of(flux.getCompte(), CCA), CompteComptable.of(COMPTE_ATTENTE, CCA));
+        CompteComptable.of(flux.getCompte(), CCA, true),
+        CompteComptable.of(COMPTE_ATTENTE, CCA, false));
   }
 
   public record Comptes(CompteComptable compteDébiteur, CompteComptable compteCréditeur) {}

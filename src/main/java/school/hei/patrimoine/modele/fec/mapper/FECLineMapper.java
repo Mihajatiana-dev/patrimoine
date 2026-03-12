@@ -18,36 +18,36 @@ public class FECLineMapper {
     var compte = ligne.compte();
     var compAux = ligne.compteAuxiliaire();
     var pj = ecriture.pj();
-    var flux = ligne.flux();
 
-    var montantEur = flux.convertir(EUR, now());
-    var isDebit = montantEur.montant() >= 0;
+    var montantEUR = compte.compte().valeurComptable().convertir(EUR, now());
+    var montantMGA = montantEUR.convertir(MGA, now()).montant();
+    var debit = compte.isDebit() ? formatAmount(montantEUR.montant()) : "";
+    var credit = !compte.isDebit() ? formatAmount(montantEUR.montant()) : "";
 
     return new FECLine(
         List.of(
             journal.code().toString(),
             journal.libelle(),
             ecriture.id(),
-            ecriture.date() != null ? formatDate(ecriture.date()) : "",
+            formatDate(ecriture.date()),
             compte.typeComptable().toString(),
             compte.compte().nom(),
             compAux != null ? compAux.typeComptable().toString() : "",
             compAux != null ? compAux.compte().nom() : "",
             pj != null ? pj.id() : "",
-            pj != null ? formatDate(pj.date()) : "",
+            formatDate(pj != null ? pj.date() : null),
             ecriture.libelle(),
-            isDebit ? formatAmount(montantEur.montant()) : "",
-            isDebit ? "" : formatAmount(montantEur.montant()),
+            debit,
+            credit,
             ligne.lettrage() != null ? ligne.lettrage() : "",
-            ligne.dateLettrage() != null ? formatDate(ligne.dateLettrage()) : "",
-            ecriture.dateValidation() != null ? formatDate(ecriture.dateValidation()) : "",
-            formatAmount(flux.convertir(MGA, LocalDate.now()).montant()),
+            formatDate(ligne.dateLettrage()),
+            formatDate(ecriture.dateValidation()),
+            formatAmount(montantMGA),
             MGA.codeIso()));
   }
-  ;
 
   private static String formatDate(LocalDate date) {
-    return date.toString().replace("-", "");
+    return (date != null) ? date.toString().replace("-", "") : "";
   }
 
   private static String formatAmount(double montant) {

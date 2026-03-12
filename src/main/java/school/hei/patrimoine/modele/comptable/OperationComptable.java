@@ -8,14 +8,14 @@ import school.hei.patrimoine.modele.possession.Possession;
 @Getter
 public class OperationComptable {
   private final Possession possession;
-  private final CompteComptable compteActif;
-  private final CompteComptable comptePassif;
+  private final CompteComptable compteDebiteur;
+  private final CompteComptable compteCrediteur;
 
   public OperationComptable(Possession possession) {
     this.possession = possession;
     var comptes = getComptesComptables();
-    this.compteActif = comptes.compteActif;
-    this.comptePassif = comptes.comptePassif;
+    this.compteDebiteur = comptes.compteDebiteur;
+    this.compteCrediteur = comptes.compteCrediteur;
   }
 
   public static OperationComptable make(Possession possession) {
@@ -27,5 +27,5 @@ public class OperationComptable {
     return new ComptesComptables(comptes.compteDébiteur(), comptes.compteCréditeur());
   }
 
-  record ComptesComptables(CompteComptable compteActif, CompteComptable comptePassif) {}
+  record ComptesComptables(CompteComptable compteDebiteur, CompteComptable compteCrediteur) {}
 }
