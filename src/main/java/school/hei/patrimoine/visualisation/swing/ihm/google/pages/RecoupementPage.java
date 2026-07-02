@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 import lombok.extern.slf4j.Slf4j;
+import school.hei.patrimoine.modele.possession.*;
 import school.hei.patrimoine.modele.possession.Possession;
 import school.hei.patrimoine.modele.possession.pj.PieceJustificative;
 import school.hei.patrimoine.modele.recouppement.model.PossessionRecoupee;
@@ -20,6 +21,7 @@ import school.hei.patrimoine.modele.recouppement.model.RecoupementStatus;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.PlaceholderTextField;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.app.LazyPage;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.appbar.AppBar;
+import school.hei.patrimoine.visualisation.swing.ihm.google.component.appbar.builtin.AddExportButton;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.appbar.builtin.AddImprevuButton;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.appbar.builtin.UserInfoPanel;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.button.NavigateButton;
@@ -95,6 +97,7 @@ public class RecoupementPage extends LazyPage {
         getStatusFilter(state),
         getPjFilter(state),
         new AddImprevuButton(state),
+        new AddExportButton(state),
         getPlaceholderTextField(state));
   }
 
