@@ -48,12 +48,12 @@ public class PossessionCompteResolver {
               new PairCompteComptable(
                   CompteComptable.builder()
                       .compte(remboursement.getRemboursé())
-                      .typeComptable(DETTE)
+                      .typeComptable(BANQUE)
                       .mouvementComptable(DEBIT)
                       .build(),
                   CompteComptable.builder()
                       .compte(remboursement.getRembourseur())
-                      .typeComptable(BANQUE)
+                      .typeComptable(DETTE)
                       .mouvementComptable(CREDIT)
                       .build());
           case AchatMaterielAuComptant achat ->
@@ -75,11 +75,11 @@ public class PossessionCompteResolver {
 
   private static @NonNull PairCompteComptable getComptes(FluxArgent flux) {
     if (flux.getFluxMensuel().montant() < 0) {
-      var compteCCA = new Compte("CCA_" + flux.nom(), now(), ariary(0));
+      var compteCharge = new Compte("CHARGE_" + flux.nom(), now(), ariary(0));
       return new PairCompteComptable(
           CompteComptable.builder()
-              .compte(compteCCA)
-              .typeComptable(CCA)
+              .compte(compteCharge)
+              .typeComptable(CHARGE_DIVERSE)
               .mouvementComptable(DEBIT)
               .build(),
           CompteComptable.builder()
@@ -88,7 +88,7 @@ public class PossessionCompteResolver {
               .mouvementComptable(CREDIT)
               .build());
     }
-    var comptePCA = new Compte("PCA_" + flux.nom(), now(), ariary(0));
+    var compteProduit = new Compte("PRODUIT_" + flux.nom(), now(), ariary(0));
     return new PairCompteComptable(
         CompteComptable.builder()
             .compte(flux.getCompte())
@@ -96,8 +96,8 @@ public class PossessionCompteResolver {
             .mouvementComptable(DEBIT)
             .build(),
         CompteComptable.builder()
-            .compte(comptePCA)
-            .typeComptable(PCA)
+            .compte(compteProduit)
+            .typeComptable(PRODUIT_DIVERS)
             .mouvementComptable(CREDIT)
             .build());
   }
