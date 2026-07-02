@@ -15,11 +15,13 @@ import school.hei.patrimoine.modele.comptable.fec.mapper.FECLineMapper;
 
 public class FECWriter implements Closeable {
   private final CSVWriter csvWriter;
+  private static final char TAB_SEPARATOR = '\t';
 
   public FECWriter(Path path) throws IOException {
     var writer = new BufferedWriter(new OutputStreamWriter(newOutputStream(path), UTF_8));
     this.csvWriter =
-        new CSVWriter(writer, '\t', NO_QUOTE_CHARACTER, DEFAULT_ESCAPE_CHARACTER, DEFAULT_LINE_END);
+        new CSVWriter(
+            writer, TAB_SEPARATOR, NO_QUOTE_CHARACTER, DEFAULT_ESCAPE_CHARACTER, DEFAULT_LINE_END);
   }
 
   public void writeFEC(Collection<Journal> journals) {
