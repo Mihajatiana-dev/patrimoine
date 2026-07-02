@@ -75,7 +75,7 @@ class OperationComptableTest {
     var credit = subject.getCompteCrediteur();
     var debit = subject.getCompteDebiteur();
 
-    assertEquals(PCA, credit.typeComptable());
+    assertEquals(PRODUIT_DIVERS, credit.typeComptable());
     assertEquals(BANQUE, debit.typeComptable());
   }
 }

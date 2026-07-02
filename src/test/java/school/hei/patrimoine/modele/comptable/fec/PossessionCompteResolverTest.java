@@ -35,7 +35,7 @@ class PossessionCompteResolverTest {
     var crediteur = comptes.compteCrediteur().compte();
 
     assertEquals(flux.getCompte(), debiteur);
-    assertEquals("PCA_Entrée argent", crediteur.nom());
+    assertEquals("PRODUIT_Entrée argent", crediteur.nom());
   }
 
   @Test
