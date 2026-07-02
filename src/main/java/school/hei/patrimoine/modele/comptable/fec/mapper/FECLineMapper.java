@@ -69,7 +69,7 @@ public class FECLineMapper {
     values.put(CREDIT, credit);
     values.put(ECRITURE_LET, ligne.lettrage() != null ? ligne.lettrage() : "");
     values.put(DATE_LET, formatDate(ligne.dateLettrage()));
-    values.put(VALID_DATE, formatDate(ecriture.dateValidation()));
+    values.put(VALID_DATE, pj != null ? formatDate(now()) : "");
     values.put(MONTANT_DEVISE, formatAmount(montantMGA));
     values.put(IDEVISE, MGA.codeIso());
 
