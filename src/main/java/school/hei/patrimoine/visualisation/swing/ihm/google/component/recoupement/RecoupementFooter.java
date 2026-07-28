@@ -1,19 +1,24 @@
 package school.hei.patrimoine.visualisation.swing.ihm.google.component.recoupement;
 
+import static java.awt.Color.WHITE;
+import static java.awt.Cursor.HAND_CURSOR;
+
 import java.awt.*;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 import javax.swing.*;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.button.Button;
 import school.hei.patrimoine.visualisation.swing.ihm.google.modele.State;
+import school.hei.patrimoine.visualisation.swing.ihm.google.pages.RecoupementPage;
 import school.hei.patrimoine.visualisation.swing.ihm.google.providers.model.Pagination;
 
 public class RecoupementFooter extends JPanel {
   private final State state;
-
+  private final Button nextPageButton;
+  private final JCheckBox pagedCheckBox;
   private final Button previousPageButton;
   private final JComboBox<Integer> pageSelector;
-  private final Button nextPageButton;
 
   public RecoupementFooter(State state) {
     this.state = state;
@@ -21,16 +26,29 @@ public class RecoupementFooter extends JPanel {
     setLayout(new FlowLayout(FlowLayout.RIGHT));
     setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 10));
 
+    var isPaged = state.get("isPaged");
+    pagedCheckBox = new JCheckBox("Navigation par pages", Boolean.TRUE.equals(isPaged));
+    pagedCheckBox.setFont(new Font("Arial", Font.PLAIN, 14));
+    pagedCheckBox.setCursor(new Cursor(HAND_CURSOR));
+    pagedCheckBox.addActionListener(
+        e ->
+            state.update(
+                Map.of(
+                    "isPaged",
+                    pagedCheckBox.isSelected(),
+                    "pagination",
+                    new Pagination(1, RecoupementPage.RECOUPEMENT_ITEM_PER_PAGE))));
+
     previousPageButton = new Button("Précédente", e -> goToPreviousPage());
     previousPageButton.setFont(new Font("Arial", Font.PLAIN, 14));
-    previousPageButton.setBackground(Color.WHITE);
-    previousPageButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    previousPageButton.setBackground(WHITE);
+    previousPageButton.setCursor(new Cursor(HAND_CURSOR));
     previousPageButton.setPreferredSize(new Dimension(110, 40));
 
     pageSelector = new JComboBox<>();
     pageSelector.setFont(new Font("Arial", Font.PLAIN, 14));
     pageSelector.setPreferredSize(new Dimension(70, 40));
-    pageSelector.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    pageSelector.setCursor(new Cursor(HAND_CURSOR));
     pageSelector.setRenderer(
         new DefaultListCellRenderer() {
           @Override
@@ -44,20 +62,22 @@ public class RecoupementFooter extends JPanel {
             label.setHorizontalAlignment(CENTER);
 
             label.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
-            label.setBackground(isSelected ? new Color(100, 150, 255) : Color.WHITE);
-            label.setForeground(isSelected ? Color.WHITE : Color.BLACK);
+            label.setBackground(isSelected ? new Color(100, 150, 255) : WHITE);
+            label.setForeground(isSelected ? WHITE : Color.BLACK);
 
             return label;
           }
         });
     nextPageButton = new Button("Suivante", e -> goToNextPage());
     nextPageButton.setFont(new Font("Arial", Font.PLAIN, 14));
-    nextPageButton.setBackground(Color.WHITE);
-    nextPageButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    nextPageButton.setBackground(WHITE);
+    nextPageButton.setCursor(new Cursor(HAND_CURSOR));
     nextPageButton.setPreferredSize(new Dimension(110, 40));
 
-    state.subscribe(Set.of("totalPages", "pagination"), this::updatePageSelector);
+    state.subscribe(Set.of("totalPages", "pagination", "isPaged"), this::updateFooter);
 
+    add(pagedCheckBox);
+    add(Box.createHorizontalStrut(15));
     add(previousPageButton);
     add(pageSelector);
     add(nextPageButton);
@@ -88,10 +108,15 @@ public class RecoupementFooter extends JPanel {
       state.update("pagination", current.toBuilder().page(current.page() + 1).build());
   }
 
-  public void updatePageSelector() {
-    int totalPages = state.get("totalPages");
+  public void updateFooter() {
+    int totalPages = state.get("totalPages") != null ? state.get("totalPages") : 1;
     Pagination pagination = state.get("pagination");
-    var currentPage = pagination.page();
+    var currentPage = pagination != null ? pagination.page() : 1;
+
+    var isPaged = state.get("isPaged");
+    var paged = Boolean.TRUE.equals(isPaged);
+
+    pagedCheckBox.setSelected(paged);
 
     var listeners = pageSelector.getActionListeners();
     for (var listener : listeners) {
@@ -111,7 +136,8 @@ public class RecoupementFooter extends JPanel {
       pageSelector.addActionListener(listener);
     }
 
-    previousPageButton.setEnabled(currentPage > 1);
-    nextPageButton.setEnabled(currentPage < totalPages);
+    previousPageButton.setEnabled(paged && currentPage > 1);
+    nextPageButton.setEnabled(paged && currentPage < totalPages);
+    pageSelector.setEnabled(paged);
   }
 }
