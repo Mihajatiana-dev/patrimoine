@@ -53,6 +53,8 @@ public class RecoupementPage extends LazyPage {
             Map.of(
                 "totalPages",
                 1,
+                "isPaged",
+                false,
                 "filterStatus",
                 PossessionRecoupeeFilterStatus.TOUS,
                 "filterPj",
@@ -65,7 +67,7 @@ public class RecoupementPage extends LazyPage {
     PatriLangFilesWatcher.addObserver(this::update);
 
     state.subscribe(
-        Set.of("filterStatus", "filterPj", "selectedFile", "pagination", "filterName"),
+        Set.of("isPaged", "filterStatus", "filterPj", "selectedFile", "pagination", "filterName"),
         this::update);
 
     setLayout(new BorderLayout());
@@ -85,7 +87,13 @@ public class RecoupementPage extends LazyPage {
     statusFilter.setCursor(new Cursor(Cursor.HAND_CURSOR));
     statusFilter.setToolTipText("Filtrer par status");
     statusFilter.addActionListener(
-        e -> state.update("filterStatus", statusFilter.getSelectedItem()));
+        e ->
+            state.update(
+                Map.of(
+                    "filterStatus",
+                    Objects.requireNonNull(statusFilter.getSelectedItem()),
+                    "pagination",
+                    new Pagination(1, RECOUPEMENT_ITEM_PER_PAGE))));
 
     return statusFilter;
   }
@@ -106,7 +114,14 @@ public class RecoupementPage extends LazyPage {
     pjFilter.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
     pjFilter.setCursor(new Cursor(Cursor.HAND_CURSOR));
     pjFilter.setToolTipText("Filtrer par pièce justificative");
-    pjFilter.addActionListener(e -> state.update("filterPj", pjFilter.getSelectedItem()));
+    pjFilter.addActionListener(
+        e ->
+            state.update(
+                Map.of(
+                    "filterPj",
+                    Objects.requireNonNull(pjFilter.getSelectedItem()),
+                    "pagination",
+                    new Pagination(1, RECOUPEMENT_ITEM_PER_PAGE))));
     return pjFilter;
   }
 
@@ -277,7 +292,15 @@ public class RecoupementPage extends LazyPage {
         .onSuccess(
             list -> {
               Map<String, PieceJustificative> pjMap = state.get("currentPjMap");
-              possessionRecoupeeListPanel.update(list, pjMap != null ? pjMap : Map.of());
+              Map<String, PieceJustificative> currentPjMap = pjMap != null ? pjMap : Map.of();
+              var currentPagination = getPagination();
+
+              var isPaged = state.get("isPaged");
+              if (Boolean.TRUE.equals(isPaged) || currentPagination.page() == 1) {
+                possessionRecoupeeListPanel.update(list, currentPjMap);
+              } else {
+                possessionRecoupeeListPanel.appendData(list, currentPjMap);
+              }
             })
         .build()
         .execute();
