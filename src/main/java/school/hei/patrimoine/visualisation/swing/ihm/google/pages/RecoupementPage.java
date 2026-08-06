@@ -17,6 +17,7 @@ import school.hei.patrimoine.modele.possession.Possession;
 import school.hei.patrimoine.modele.possession.pj.PieceJustificative;
 import school.hei.patrimoine.modele.recouppement.model.PossessionRecoupee;
 import school.hei.patrimoine.modele.recouppement.model.RecoupementStatus;
+import school.hei.patrimoine.visualisation.swing.ihm.google.component.DatePicker;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.PlaceholderTextField;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.app.LazyPage;
 import school.hei.patrimoine.visualisation.swing.ihm.google.component.appbar.AppBar;
@@ -59,6 +60,10 @@ public class RecoupementPage extends LazyPage {
                 PossessionRecoupeeFilterStatus.TOUS,
                 "filterPj",
                 PossessionRecoupeeFilterPj.TOUS,
+                "startDate",
+                LocalDate.MIN,
+                "endDate",
+                LocalDate.MAX,
                 "pagination",
                 new Pagination(1, RECOUPEMENT_ITEM_PER_PAGE)));
 
@@ -67,7 +72,15 @@ public class RecoupementPage extends LazyPage {
     PatriLangFilesWatcher.addObserver(this::update);
 
     state.subscribe(
-        Set.of("isPaged", "filterStatus", "filterPj", "selectedFile", "pagination", "filterName"),
+        Set.of(
+            "isPaged",
+            "filterStatus",
+            "filterPj",
+            "selectedFile",
+            "pagination",
+            "filterName",
+            "startDate",
+            "endDate"),
         this::update);
 
     setLayout(new BorderLayout());
@@ -103,8 +116,10 @@ public class RecoupementPage extends LazyPage {
         new NavigateButton("Retour", "patrilang-files"),
         getStatusFilter(state),
         getPjFilter(state),
-        new AddImprevuButton(state),
-        getPlaceholderTextField(state));
+        getDatePicker(state, "startDate", LocalDate.MIN),
+        getDatePicker(state, "endDate", LocalDate.MAX),
+        getPlaceholderTextField(state),
+        new AddImprevuButton(state));
   }
 
   private static JComboBox<PossessionRecoupeeFilterPj> getPjFilter(State state) {
@@ -176,10 +191,22 @@ public class RecoupementPage extends LazyPage {
             () -> {
               var selectedFile = fileList.getSelectedValue();
               if (selectedFile != null) {
+                var doneCas = getCas(getDoneFile(selectedFile));
+                var startDate =
+                    doneCas != null && doneCas.getAjd() != null ? doneCas.getAjd() : LocalDate.MIN;
+                var endDate =
+                    doneCas != null && doneCas.getFinSimulation() != null
+                        ? doneCas.getFinSimulation()
+                        : LocalDate.MAX;
+
                 state.update(
                     Map.of(
                         "selectedFile",
                         selectedFile,
+                        "startDate",
+                        startDate,
+                        "endDate",
+                        endDate,
                         "pagination",
                         new Pagination(1, RECOUPEMENT_ITEM_PER_PAGE)));
               }
@@ -230,6 +257,40 @@ public class RecoupementPage extends LazyPage {
     }
   }
 
+  private static DatePicker getDatePicker(State state, String key, LocalDate defaultValue) {
+    var datePicker = new DatePicker(LocalDate.now());
+    datePicker.setPreferredSize(new Dimension(200, 35));
+
+    state.subscribe(
+        key,
+        () -> {
+          LocalDate date = state.get(key);
+          if (date != null && !date.equals(defaultValue)) {
+            datePicker
+                .getModel()
+                .setDate(date.getYear(), date.getMonthValue() - 1, date.getDayOfMonth());
+            datePicker.getModel().setSelected(true);
+          } else {
+            datePicker.getModel().setSelected(false);
+          }
+        });
+
+    datePicker.addActionListener(
+        e -> {
+          var model = datePicker.getModel();
+          var selectedDate =
+              (model.getValue() != null)
+                  ? LocalDate.of(model.getYear(), model.getMonth() + 1, model.getDay())
+                  : defaultValue;
+
+          state.update(
+              Map.of(
+                  key, selectedDate, "pagination", new Pagination(1, RECOUPEMENT_ITEM_PER_PAGE)));
+        });
+
+    return datePicker;
+  }
+
   private List<PossessionRecoupee<Possession>> getFilteredPossessionRecoupees() {
     var optionalSelectedFile = getSelectedFile(state);
     if (optionalSelectedFile.isEmpty()) {
@@ -263,8 +324,8 @@ public class RecoupementPage extends LazyPage {
         Filter.builder()
             .statuses(statusToKeep)
             // TODO: add correct filter for performance
-            .fin(LocalDate.MAX)
-            .debut(LocalDate.MIN)
+            .debut(getDate("startDate", LocalDate.MIN))
+            .fin(getDate("endDate", LocalDate.MAX))
             .nom(getFilterName())
             .pjFilter(getPjFilter())
             .pjMap(pjMap)
@@ -277,6 +338,11 @@ public class RecoupementPage extends LazyPage {
     }
 
     return result.data();
+  }
+
+  private LocalDate getDate(String key, LocalDate defaultValue) {
+    LocalDate date = state.get(key);
+    return date != null ? date : defaultValue;
   }
 
   @Override
